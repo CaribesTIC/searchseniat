@@ -1,4 +1,15 @@
 <?php
+/**
+ * @propiedad: De Nadie
+ * @Autor: Gregorio Bolivar
+ * @email: elalconxvii@gmail.com
+ * @Fecha de Creacion: 05/09/2015
+ * @Auditado por: Gregorio J Bolivar B
+ * @Fecha de Modificacion: 10/09/2015
+ * @Descripcin: Encargado de Buscar Personas Juridicas antes el Seniat
+ * @package: leerData.class.php
+ * @version: 1.0
+ */
 $rif='V174429312';
 $url = "http://contribuyente.seniat.gob.ve/getContribuyente/getrif?rif=$rif";
 $resultado = @file_get_contents($url);
