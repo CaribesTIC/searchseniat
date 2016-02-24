@@ -5,13 +5,24 @@
  * @email: elalconxvii@gmail.com
  * @Fecha de Creacion: 05/09/2015
  * @Auditado por: Gregorio J Bolivar B
- * @Fecha de Modificacion: 10/09/2015
+ * @Fecha de Modificacion: 12/02/2016
  * @Descripcin: Encargado de Buscar Personas Juridicas antes el Seniat
  * @package: leerData.class.php
- * @version: 1.0
+ * @version: 2.0
  */
 $rif='V174429312';
 $url = "http://contribuyente.seniat.gob.ve/getContribuyente/getrif?rif=$rif";
+/* // Si necesitas procesar por un proxy quita el comentario
+$configProxy = array(
+    'http' => array(
+        'proxy' => 'tcp://192.168.0.2:3128',
+        'request_fulluri' => true,
+    ),
+);
+$preproceso = stream_context_create($configProxy);
+
+$resultado = @file_get_contents($url, False, $preproceso);
+*/
 $resultado = @file_get_contents($url);
 if ($resultado) {
 	try {

@@ -1,6 +1,6 @@
 # README #
 
-This README would normally document whatever steps are necessary to get your application up and running.
+Código encargado de procesar los datos del contribuyente mediante este servicio.
 
 ### What is this repository for? ###
 
