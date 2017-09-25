@@ -1,49 +1,122 @@
 <?php
+require('simple_html_dom.php');
+
 /**
- * @propiedad: De Nadie
- * @Autor: Gregorio Bolivar
- * @email: elalconxvii@gmail.com
- * @Fecha de Creacion: 05/09/2015
- * @Auditado por: Gregorio J Bolivar B
- * @Fecha de Modificacion: 12/02/2016
- * @Descripcin: Encargado de Buscar Personas Juridicas antes el Seniat mediante CURL
- * @package: leerData.class.php
- * @version: 2.0
+ * Clase encargada de gestionar diferentes paginas mediantes consumo sea por curl
+ * hay que tener claro que podemos ejercer el consumo del html en caso que alla un cambio del resultado del
+ * html del CNE hay que modificar las clases porque cambian las posiciones
  */
-	$rif='V236114682';
-	$url = "http://contribuyente.seniat.gob.ve/getContribuyente/getrif?rif=$rif";
-	$ch = curl_init();
-	curl_setopt($ch, CURLOPT_URL, $url);
-	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-	curl_setopt($ch, CURLOPT_HEADER, true); 
-    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET');//esto si usa metodo GET
-    /* Comentar estas dos lineas si no usa proxy */
-    //curl_setopt ($ch, CURLOPT_PROXY, "http://192.168.0.5");
-    //curl_setopt ($ch, CURLOPT_PROXYPORT, 8080);
-    /* ----------------------------------------- */
-    $resultado = curl_exec ($ch);
-    if ($resultado) {
-    	try {
-    		if (substr($resultado, 0, 1) != '<')
-    			throw new Exception($resultado);
-    		$xml = simplexml_load_string($resultado);
-    		if (!is_bool($xml)) {
-    			$elements = $xml->children('rif');
-    			$seniat = array();
-    			$response_json['result'] = 1;
-    			foreach ($elements as $indice => $node) {
-    				$index = strtolower($node->getName());
-    				$seniat[$index] = (string) $node;
-    			}
-    			$response_json['data'] = $seniat;
-    		}
-    	} catch (Exception $e) {
-    		$result = explode(' ', @$resultado, 2);
-    		$response_json['result'] = (int) $result[0];
-    	}
-    } else {
-    	$response_json['result'] = 0;
-    	$response_json['data'] = '452 El Contribuyente no está registrado ';
+class SearchCurl {
+
+    /**
+     * Permite consumir e interpretar la informacion del resultado del curl para solo extraer los datos necesarios
+     * @author Gregorio Jose Bolivar Bolivar <elalconxvii@gmail.com>
+     * @param string $nac Nacionalidad de la persona
+     * @param integer $ci Cedula de la persona
+     * @return string Json del resultado consultado de los datos asociados a la persona
+     */
+    public static function searchSeniat($rif) {
+        $url = "http://www.elrif.com/?rif=$rif";
+        $resource = self::geUrl($url);
+       
+        
+        $findme[0] = 'RIF de la empresa:'; // Identifica si tiene identificacion de empresa
+        $findme[1] = 'Cédula del contribuyente';    
+        $pos0 = strpos($resource, $findme[0]);
+        $pos1 = strpos($resource, $findme[1]);
+
+        if ($pos0 == TRUE OR $pos1 == TRUE) {
+            /*** a new dom object ***/ 
+            $dom = new domDocument; 
+
+            /*** load the html into the object ***/ 
+            @$dom->loadHTML($resource); 
+
+            /*** discard white space ***/ 
+            $dom->preserveWhiteSpace = false; 
+
+            /*** the table by its tag name ***/ 
+            $tables = $dom->getElementsByTagName('table'); 
+
+
+            /*** get all rows from the table ***/ 
+            $rows = $tables->item(2)->getElementsByTagName('tr'); 
+
+            /*** loop over the table rows ***/ 
+            foreach ($rows AS $item=>$values) 
+            { 
+                $datoJson['error']=0;
+                
+                $resource = explode(":", $values->textContent);
+
+
+                $a=(bool)strpos($resource[0], 'Razón Social');
+                if($a){
+                   $datoJson['razonSocial'] =  self::limpiarCampo($resource[1]);
+                }
+
+
+                $b=(bool)strpos($resource[0], 'Sector económico');
+                if($b){
+                   $datoJson['sector'] =  self::limpiarCampo($resource[1]);
+                }else{
+                    $datoJson['sector'] = ' ';
+                }
+
+                $c=(bool)strpos($resource[0], 'Condición');
+                if($c){
+                   $datoJson['condicion'] =  self::limpiarCampo($resource[1]);
+                }
+
+                $d=(bool)strpos($resource[0], ' RIF del contribuyente');
+                if($d){
+                   $datoJson['rif'] =  self::limpiarCampo($resource[1]);
+                }
+            }
+        }else{
+            $datoJson['error']=1;
+        }
+
+        echo json_encode($datoJson);
     }
-    die(json_encode($response_json));
-    ?>
+
+    /**
+     * Permite consultar cualquier pagina mediante curl
+     * @author Gregorio Jose Bolivar Bolivar <elalconxvii@gmail.com>
+     * @param string $url url al cual desea consultar
+     * @return string HTML del resultado consultado
+     */
+    public static function geUrl($url) {
+        $curl = curl_init();
+        curl_setopt($curl, CURLOPT_URL, $url);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true); // almacene en una variable
+        curl_setopt($curl, CURLOPT_HEADER, FALSE);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+
+        if (curl_exec($curl) === false) {
+            echo 'Curl error: ' . curl_error($curl);
+        } else {
+            $return = curl_exec($curl);
+        }
+        curl_close($curl);
+
+        return $return;
+    }
+
+    /**
+     * Permite limpiar los valores del renorno del carro (\n \r \t) 
+     * @author Gregorio Jose Bolivar Bolivar <elalconxvii@gmail.com>
+     * @param string $valor Valor que queremos limpiar de caracteres no permitidos
+     * @return string Te devuelve los mismo valores pero sin los valores del renorno del carro
+     */
+    public static function limpiarCampo($valor) {
+        $rempl = array('\n', '\t');
+        $r = trim(str_replace($rempl, ' ', $valor));
+        return str_replace("\r", "", str_replace("\n", "", str_replace("\t", "", $r)));
+    }
+
+}
+
+$curls = new SearchCurl();
+$curls->searchSeniat('V174429312');
+?>

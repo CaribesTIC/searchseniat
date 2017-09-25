@@ -1,29 +1,26 @@
 # README #
 
 Código encargado de procesar los datos del contribuyente mediante este servicio.
+Actualizada 25 / 09 / 2017
 
-### What is this repository for? ###
+### ¿Para qué es este repositorio? ###
 
-* Quick summary
-* Version
-* [Learn Markdown](https://bitbucket.org/tutorials/markdowndemo)
+* Consultar elementos del SENIAT
+* Version 2.0
+* [GREGOIO BOLIVAR](https://bitbucket.org/gbolivar_/searchseniat)
 
-### How do I get set up? ###
+### ¿Cómo me instalo? ###
 
-* Summary of set up
-* Configuration
-* Dependencies
-* Database configuration
-* How to run tests
-* Deployment instructions
+* Lo primero que debes hacer es descargar el repositorio es una clase commun que permite consultar los datos del seniat
+* Debes tener curl en su server donde lo vas a instalar
+* Obligatorio el archivo simple_html_dom.php
 
-### Contribution guidelines ###
+### Pautas de contribución ###
 
-* Writing tests
-* Code review
-* Other guidelines
+* Revisión de código
+* Otras pautas
 
-### Who do I talk to? ###
+### ¿Con quién hablo? ###
 
-* Repo owner or admin
-* Other community or team contact
+* Dueño o administrador de Repo
+* Otro contacto de la comunidad o del equipo Gregorio Bolivar
